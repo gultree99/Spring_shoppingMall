@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+<context:annotation-config></context:annotation-config>
+<context:component-scan base-package="com.*"></context:component-scan>
+
+<context:property-placeholder location="classpath:com/config/jdbc.properties"/>
+
+<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+	<property name="driverClassName" value="${oracle.driver}"></property>
+	<property name="url" value="${oracle.url}"></property>
+	<property name="username" value="${oracle.username}"></property>
+	<property name="password" value="${oracle.password}"></property>
+</bean>
+
+<!-- transaction의 시작 -->
+<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<property name="dataSource" ref="dataSource"></property>
+</bean>
+<tx:annotation-driven transaction-manager="txManager"/>
+<!-- transaction 처리 종료 -->
+
+<!-- MySqlSessionFactory와 같은 역할 -->
+<bean id="SessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	<property name="dataSource" ref="dataSource"></property>
+	<property name="mapperLocations"><!-- Mapper정보 -->
+		<list>
+			<value>classpath:com/config/CartMapper.xml</value><!-- mapper등록 -->
+			<value>classpath:com/config/GoodsMapper.xml</value>
+			<value>classpath:com/config/MemberMapper.xml</value>
+		</list>
+	</property>
+	<property name="typeAliases"><!-- DTO지정 -->
+		<list>
+			<value>com.dto.CartDTO</value><!-- 실제 Alias는 각 클래스에서 @Alias()사용 지정 -->
+			<value>com.dto.GoodsDTO</value>
+			<value>com.dto.MemberDTO</value>
+			<value>com.dto.OrderDTO</value>		
+		</list>
+	</property>
+</bean>
+
+<!-- 기존 SqlSession과 같은 역할 -->
+<bean id="sessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+	<constructor-arg name="sqlSessionFactory" ref="SessionFactory"></constructor-arg>
+</bean>
+
+
+</beans>
